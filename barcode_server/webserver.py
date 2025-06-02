@@ -89,15 +89,17 @@ class Webserver:
             LOGGER.warning(f"Rejecting unauthorized connection: {request.host}")
             return web.HTTPUnauthorized()
 
-        if Client_Id not in request.headers.keys():
-            LOGGER.warning(f"Rejecting client without {Client_Id} header: {request.host}")
-            return web.HTTPBadRequest()
+        #if Client_Id not in request.headers.keys():
+        #    LOGGER.warning(f"Rejecting client without {Client_Id} header: {request.host}")
+        #    return web.HTTPBadRequest()
 
-        client_id = request.headers[Client_Id].lower().strip()
+        #client_id = request.headers[Client_Id].lower().strip()
+        peer_host, peer_port = request.transport.get_extra_info('peername')
+        client_id = peer_host + ":" + str(peer_port)
 
         if self.clients.get(client_id, None) is not None:
             LOGGER.warning(
-                f"Rejecting new connection of already connected client {request.headers[Client_Id]}: {request.host}")
+                f"Rejecting new connection of already connected client {client_id}: {request.host}")
             return web.HTTPBadRequest()
 
         return await handler(self, request)
@@ -112,7 +114,9 @@ class Webserver:
 
     @routes.get("/")
     async def websocket_handler(self, request):
-        client_id = request.headers[Client_Id].lower().strip()
+        #client_id = request.headers[Client_Id].lower().strip()
+        peer_host, peer_port = request.transport.get_extra_info('peername')
+        client_id = peer_host + ":" + str(peer_port)
 
         websocket = web.WebSocketResponse()
         await websocket.prepare(request)
