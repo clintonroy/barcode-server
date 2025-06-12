@@ -35,4 +35,4 @@ def barcode_event_to_json(server_id: str, event: BarcodeEvent) -> bytes:
     }
 
     json = orjson.dumps(event)
-    return json
+    return event
