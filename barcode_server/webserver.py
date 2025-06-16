@@ -6,6 +6,7 @@ import aiohttp
 from aiohttp import web
 from aiohttp.web_middlewares import middleware
 from prometheus_async.aio import time
+import ssl
 
 from barcode_server.barcode import BarcodeReader, BarcodeEvent
 from barcode_server.config import AppConfig
@@ -61,7 +62,16 @@ class Webserver:
         for key, notifier in self.notifiers.items():
             LOGGER.debug(f"Starting notifier: {key}")
             await notifier.start()
-        LOGGER.info(f"Starting webserver on {self.config.SERVER_HOST.value}:{self.config.SERVER_PORT.value} ...")
+
+        protocol = "https&wss://" if self.config.SSL_KEY_FILE.value else "http&ws://"
+        LOGGER.info(f"Starting webserver on {protocol}{self.config.SERVER_HOST.value}:{self.config.SERVER_PORT.value} ...")
+
+        if self.config.SSL_KEY_FILE.value:
+            ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+            ssl_context.load_cert_chain(self.config.SSL_CERT_FILE.value, self.config.SSL_KEY_FILE.value)
+        else:
+            ssl_context = None
+
 
         app = self.create_app()
         runner = aiohttp.web.AppRunner(app)
@@ -69,7 +79,8 @@ class Webserver:
         site = aiohttp.web.TCPSite(
             runner,
             host=self.config.SERVER_HOST.value,
-            port=self.config.SERVER_PORT.value
+            port=self.config.SERVER_PORT.value,
+            ssl_context=ssl_context,
         )
         await site.start()
 

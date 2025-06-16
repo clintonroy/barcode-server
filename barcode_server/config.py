@@ -244,6 +244,25 @@ class AppConfig(ConfigBase):
         required=False
     )
 
+    SSL_CERT_FILE = FileConfigEntry(
+        key_path=[
+            CONFIG_NODE_ROOT,
+            CONFIG_NODE_SSL,
+            "cert_file"
+        ],
+        required=False,
+    )
+
+    SSL_KEY_FILE = FileConfigEntry(
+        key_path=[
+            CONFIG_NODE_ROOT,
+            CONFIG_NODE_SSL,
+            "key_file"
+        ],
+        required=False,
+    )
+
+
     def validate(self):
         super(AppConfig, self).validate()
         if len(self.DEVICE_PATHS.value) == len(self.DEVICE_PATTERNS.value) == 0:
