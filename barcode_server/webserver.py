@@ -125,11 +125,11 @@ class Webserver:
 
     @routes.post("/inject")
     async def inject_handle(self, request):
-        device = next(iter(self.barcode_reader.devices.get_values()))
+        device = next(iter(self.barcode_reader.devices.values()))
         barcode = request.query.get("barcode", "dummy barcode")
         event = BarcodeEvent(device, barcode)
-        await on_barcode(event)
-        return web.Response(test=f"injected {barcode}")
+        await self.on_barcode(event)
+        return web.Response(text=f"injected {barcode}")
 
     @routes.get("/")
     async def websocket_handler(self, request):
